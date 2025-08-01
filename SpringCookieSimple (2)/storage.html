@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Login con Token</title>
+</head>
+<body>
+  <input id="user" placeholder="Username">
+  <input id="pass" placeholder="Password" type="password">
+  <button onclick="login()">Login</button>
+  <button onclick="profilo()">Profilo</button>
+  <button onclick="logout()">Logout</button>
+  <p id="out"></p>
+
+  <script>
+    const baseUrl = "http://localhost:8080/api";
+
+    function login() {
+      const u = document.getElementById("user").value;
+      const p = document.getElementById("pass").value;
+
+      fetch(`${baseUrl}/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: u, password: p })
+      })
+      .then(r => r.text())
+      .then(token => {
+        if (token !== "LOGIN_FAILED") {
+          // Salva il token nel localStorage del browser
+          // localStorage è una memoria permanente lato client (browser)
+          // I dati salvati rimangono anche dopo il refresh o la chiusura del browser
+          // Qui salviamo il token ricevuto dal backend per usarlo nelle richieste future
+          localStorage.setItem("token", token);
+
+          document.getElementById("out").textContent = "Login OK. Token: " + token;
+        } else {
+          document.getElementById("out").textContent = "Login fallito";
+        }
+      });
+    }
+
+    function profilo() {
+      // Recupera il token dal localStorage
+      // Usiamo il token per autenticare l'utente nella richiesta al backend
+      const token = localStorage.getItem("token");
+
+      fetch(`${baseUrl}/profilo`, {
+        headers: { "X-Token": token } // inviamo il token come header personalizzato
+      })
+      .then(r => r.text())
+      .then(txt => document.getElementById("out").textContent = txt);
+    }
+
+    function logout() {
+      const token = localStorage.getItem("token");
+
+      fetch(`${baseUrl}/logout`, {
+        method: "POST",
+        headers: { "X-Token": token }
+      })
+      .then(r => r.text())
+      .then(txt => {
+        document.getElementById("out").textContent = txt;
+
+        // Rimuove il token dal localStorage
+        // In questo modo il token non verrà più inviato e l'utente è considerato disconnesso
+        localStorage.removeItem("token");
+      });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+package com.biagio.CRUDex;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.ComponentScan;
+
+@SpringBootApplication
+public class CruDexApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(CruDexApplication.class, args);
+	}
+
+}

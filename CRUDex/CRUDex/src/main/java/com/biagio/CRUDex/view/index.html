@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Prova</title>
+    </head>
+    <body>
+        
+      <h1>Index</h1>
+      <h2>Inserire i dati del libro</h2>
+      <form>
+        <label for="titolo">titolo</label>
+        <input type="text" id="bookTitle" name="bookTitle" placeholder="Ex. Lord of the Rings"> <br>
+        <label for="titolo">autore</label>
+        <input type="text" id="bookAuthor" name="bookAuthor" placeholder="Ex. Tolkien"> <br>
+
+        <label for="titolo">Data pubblicazione</label>
+        <input type="text" id="bookRelease" name="bookRelease" placeholder="Ex. 1954"><br>
+        <input type="button" value="Invia" onclick="addBook()">
+      </form> <br>
+      <h2>Book List</h2>
+        <ul id="bookList"></ul><br>
+        <h2>Cerca libro per ID</h2>
+        <form>
+            <label for="id">Inserisci ID</label>
+            <input type="text" id="idSearch" placeholder="Ex.1" required>
+        </form>
+        <button onclick="searchById()">Cerca</button>
+        <div id="idResult">
+        </div>
+        <h2>Elimina libro</h2>
+        <form>
+            <label for="id">Inserisci ID</label>
+            <input type="text" id="deleteId" placeholder="Ex.1">
+            <button onclick="deleteBook()">Elimina</button>
+        </form>
+      <script>
+        const URL = "http://localhost:8080/libreria"
+
+        updateBookList();
+
+        function addBook(){ //Aggiunta libro
+            const book = {  //creo il json
+                "title" : document.getElementById("bookTitle").value,
+                "author" : document.getElementById("bookAuthor").value,
+                "releaseDate" : document.getElementById("bookRelease").value
+            };
+
+            console.log(book);
+            fetch(URL, { //invio una richiesta post
+                method: "POST",
+                headers: {
+                    "Content-Type" : "application/json"
+                },
+                body: JSON.stringify(book) //e trasformo il body in json
+            })
+            .then(function(response){ //prendo la risposta dal server
+                return response.json();
+            })
+            .then(function(bookAdded){ //e la passo a questa funzione per dare conferma
+                alert("libro con id: "+ bookAdded.id + " creato");
+                updateBookList(); //aggiorno i libri
+            })
+            .catch(function(error){
+                console.error("Errore nell'aggiunta del libro: " + error);
+            });
+        }
+
+        function updateBookList(){
+            fetch(URL)
+            .then(function(response){
+                return response.json();
+            })
+            .then(function(books){
+                const bookList = document.getElementById("bookList");
+                bookList.innerHTML='';
+
+                books.forEach(function(book){
+                    const li = document.createElement("li");
+                    li.textContent="#" + book.id + ": " + book.title + " " + book.releaseDate;
+                    bookList.append(li);
+                });
+            })
+            .catch(function(error){
+                alert("Errore nel caricamento dei libri: " + error);
+            });
+        }
+
+        function searchById(){
+            searchId = document.getElementById("idSearch").value;
+            const new_URL = URL+ "/"+searchId;
+            fetch(new_URL)
+            .then(response =>{
+                return response.json();
+            })
+            .then(book =>{
+                const showBook = document.createElement("p");
+                showBook.innerHTML='';
+                showBook.textContent = book.title + " " + book.author + " " + book.releaseDate;
+                const div = document.getElementById("idResult");
+                div.textContent = '';
+                div.append(showBook);
+            })
+            .catch(error =>{
+                console.log("Impossibile trovare libro con id " +searchId+": " +error);
+            });
+        }
+
+        function deleteBook(){
+            const deleteId = document.getElementById("deleteId").value;
+            const new_URL = URL+"/"+deleteId;
+            console.log(new_URL)
+            fetch(new_URL, {
+                method : "DELETE",
+                body: "formData"
+            })
+            .then(response =>{
+                alert(response.json());
+            })
+            .catch(error =>{
+                console.log("Errore nella cancellazione del libro:" + error);
+            });
+            updateBookList();
+        }
+      </script>
+    </body>
+</html>
